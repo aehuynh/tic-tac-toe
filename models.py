@@ -80,15 +80,9 @@ class Board(object):
                 if mark == self.cells[pos2[0]][pos2[1]] == self.cells[pos3[0]][pos3[1]]:
                     return mark
 
-        # Apply "and" operator to every cell
-        draw_check = " "
-        for row in range(self.NUM_ROWS):
-            for col in range(self.NUM_COLS):
-                draw_check = draw_check and self.cells[row][col]
-        # If every cell has been marked
-        if draw_check:
+        # If every cell has been marked and no one has won
+        if len(self.available_moves())== 0:
             return Board.DRAW
-
 
     def display(self):
         """Prints the current state of the Tic-Tac-Toe board."""
@@ -219,47 +213,74 @@ class Bot(Player):
         The impossible move leverages the minimax algorithm to figure out all
         possible outcomes(other than insignificant outcomes) and picks the best one.
         """
-        max_num = -50
-        max_move = None
-        for move in board.available_moves():
-            b = board.clone()
-            b.make_move(move, self.mark)
-            result = self.minimax(b, self.opponent_mark())
-            if result > max_num:
-                max_num = result
-                max_move = move
 
-        return max_move
+        # On the first move, randomly choose either the center or a corner.
+        # Both of these moves lead to an optimal outcome. This improves 
+        # evaluation time by a factor of 9 without affecting the win rate.
+        if len(board.available_moves()) == Board.NUM_COLS * Board.NUM_ROWS:
+            if bool(random.getrandbits(1)):
+                # Return center
+                return (1,1)
+            else:
+                # Return a random corner
+                corners = [(0,0), (2,0), (0,2), (2,2)]
+                return random.choice(corners)
+     
+        move, result = self.minimax(board, self.mark)
+
+        return move
 
     def minimax(self, board, current_mark):
-        # TODO: debug and get to work
+        """Minimax algorithm applied to Tic Tac Toe.
+
+        No optimizations are needed because the number of available outcomes is
+        at most 8*7*6*5*4*3*2*1 = 40320. Hard coding the first move sped up
+        the algorithm fast enough to work well.
+
+        Returns the move chosen and the value of this node in the form: move, result 
+        """
         moves = board.available_moves()
 
-        if len(moves) == 1:
-            b = board.clone()
-            b.make_move(moves[0], current_mark)
-            return self.minimax(b, current_mark)
-        elif len(moves) == 0:
-            mark = board.check_win_or_draw()
-            if mark:
-                if mark is self.mark:
-                    return 1
-                elif mark is self.opponent_mark():
-                    return -1
-            return 0
+        # Return heuristic value of node if there is a win or draw
+        mark = board.check_win_or_draw()
+        if mark:
+            if mark is self.mark:
+                return None, 10
+            elif mark is self.opponent_mark():
+                return None, -10
+            return None, 0
 
-        results = []
+        # Set data on whether to maximize or minimize 
         if current_mark is self.mark:
-            next_mark = self.opponent_mark
+            best_result = -10000000000000
+            next_mark = self.opponent_mark()
         else:
+            best_result = 10000000000000000
             next_mark = self.mark
 
+        best_move = None
         for move in moves:
+            # Simulate the move and see the result 
             b = board.clone()
-            b.make_move(move, next_mark)
-            results.append(self.minimax(b, next_mark))
+            b.make_move(move, current_mark)
+            next_move, result = self.minimax(b, next_mark)
 
-        if current_mark is self.mark:
-            return max(results)
-        else:
-            return min(results)
+            # Check if this move is the best move
+            if current_mark is self.mark:
+                if result > best_result:
+                    # Decrement result to make immediate winning moves 
+                    # more valuable to bot
+                    result -= 1
+
+                    best_result = result
+                    best_move = move
+            if current_mark is self.opponent_mark():
+                if result < best_result:
+                    # Increment result to make immediate wnning moves 
+                    # more valuable to opponent
+                    result += 1
+                    
+                    best_result = result
+                    best_move = move
+
+        return best_move, best_result
