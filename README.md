@@ -1,5 +1,5 @@
 # Tic Tac Toe
-A text-based Tic Tac Toe game with an unbeatable bot 
+Text-based Tic Tac Toe with an unbeatable bot 
 
 ### Table of Contents
 
