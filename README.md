@@ -5,7 +5,7 @@ Text-based Tic Tac Toe with an unbeatable bot
 
 1. [Motivations](#motivations)
 
-2. [How to Player](#how)
+2. [How to Play](#how)
 
 3. [Game Modes](#modes)
 
