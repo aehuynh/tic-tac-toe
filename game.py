@@ -9,18 +9,18 @@ class Game(object):
 
     def start(self):
         """Controls the flow of the entire game."""
-        self.board = Board()
-        self.display_intro()
-        self.decide_mode()
-        self.assign_marks()
-        result = self.play_game()
-        self.update_scoreboard(result)
-        self.display_scoreboard()
+        while(True):
+            self.board = Board()
+            self.display_intro()
+            self.decide_mode()
+            self.assign_marks()
+            result = self.play_game()
+            self.update_scoreboard(result)
+            self.display_scoreboard()
 
-        if self.play_again():
-            self.start()
-        else:
-            print("\nHave a good day!")
+            if self.play_again() is None:
+                print("\nHave a good day!")
+                break
 
     def display_intro(self):
         print("Welcome. This is a text based game of Tic-Tac-Toe against a smart bot. ")
